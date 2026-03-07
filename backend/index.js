@@ -1,0 +1,28 @@
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+
+const obsRoutes = require('./routes/obs');
+const xr12Routes = require('./routes/xr12');
+const sonoffRoutes = require('./routes/sonoff');
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true,
+}));
+app.use(express.json());
+
+app.use('/api/obs', obsRoutes);
+app.use('/api/xr12', xr12Routes);
+app.use('/api/sonoff', sonoffRoutes);
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.listen(PORT, () => {
+  console.log(`Ekklesia Control Backend rodando na porta ${PORT}`);
+});

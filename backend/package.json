@@ -1,0 +1,21 @@
+{
+  "name": "ekklesia-backend",
+  "version": "1.0.0",
+  "description": "Ekklesia Control - API Gateway local",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.3",
+    "node-osc": "^9.0.1",
+    "obs-websocket-js": "^5.0.5",
+    "axios": "^1.6.8"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
