@@ -72,9 +72,7 @@ export async function getDB(): Promise<IDBPDatabase<EkklesiaDB>> {
 }
 
 async function seedDefaultData(db: IDBPDatabase<EkklesiaDB>) {
-  const automacoes = await db.getAll('automacoes');
-  if (automacoes.length > 0) return;
-
+  // Sempre atualiza os presets padrão (força re-seed)
   const defaults: Automacao[] = [
     {
       id: 'iniciar-culto',
@@ -82,30 +80,94 @@ async function seedDefaultData(db: IDBPDatabase<EkklesiaDB>) {
       descricao: 'Liga som, iluminação, grava e inicia live',
       acoes: [
         { tipo: 'sonoff_on', parametros: { grupo: 'som' } },
-        { tipo: 'sonoff_on', parametros: { grupo: 'luz_altar' } },
+        { tipo: 'sonoff_on', parametros: { grupo: 'luz' } },
         { tipo: 'xr12_preset', parametros: { nome: 'pregacao' } },
         { tipo: 'obs_record_start', parametros: {} },
         { tipo: 'obs_stream_start', parametros: {} },
       ],
     },
     {
+      id: 'pre-culto',
+      nome: 'Pré-Culto',
+      descricao: 'Ambiente de espera antes do culto iniciar',
+      acoes: [
+        { tipo: 'sonoff_on', parametros: { grupo: 'luz' } },
+        { tipo: 'xr12_preset', parametros: { nome: 'louvor' } },
+        { tipo: 'obs_scene', parametros: { scene: 'Pré-Culto' } },
+        { tipo: 'obs_record_start', parametros: {} },
+        { tipo: 'obs_stream_start', parametros: {} },
+      ],
+    },
+    {
+      id: 'abertura',
+      nome: 'Abertura',
+      descricao: 'Momento de abertura do culto',
+      acoes: [
+        { tipo: 'xr12_preset', parametros: { nome: 'louvor' } },
+        { tipo: 'obs_scene', parametros: { scene: 'Abertura' } },
+      ],
+    },
+    {
       id: 'modo-louvor',
       nome: 'Modo Louvor',
-      descricao: 'Configura para momento de louvor',
+      descricao: 'Configura para momento de louvor e adoração',
       acoes: [
         { tipo: 'xr12_preset', parametros: { nome: 'louvor' } },
         { tipo: 'obs_scene', parametros: { scene: 'Louvor' } },
-        { tipo: 'sonoff_on', parametros: { grupo: 'luz_palco_forte' } },
       ],
     },
     {
       id: 'modo-pregacao',
       nome: 'Modo Pregação',
-      descricao: 'Configura para momento de pregação',
+      descricao: 'Configura para momento de pregação da Palavra',
       acoes: [
         { tipo: 'xr12_preset', parametros: { nome: 'pregacao' } },
         { tipo: 'obs_scene', parametros: { scene: 'Pregação' } },
-        { tipo: 'sonoff_on', parametros: { grupo: 'luz_palco_normal' } },
+      ],
+    },
+    {
+      id: 'modo-oferta',
+      nome: 'Oferta',
+      descricao: 'Momento de coleta de dízimos e ofertas',
+      acoes: [
+        { tipo: 'xr12_preset', parametros: { nome: 'pregacao' } },
+        { tipo: 'obs_scene', parametros: { scene: 'Oferta' } },
+      ],
+    },
+    {
+      id: 'modo-avisos',
+      nome: 'Avisos',
+      descricao: 'Momento de informes e avisos da igreja',
+      acoes: [
+        { tipo: 'xr12_preset', parametros: { nome: 'pregacao' } },
+        { tipo: 'obs_scene', parametros: { scene: 'Avisos' } },
+      ],
+    },
+    {
+      id: 'modo-santa-ceia',
+      nome: 'Santa Ceia',
+      descricao: 'Momento da Santa Ceia',
+      acoes: [
+        { tipo: 'xr12_preset', parametros: { nome: 'pregacao' } },
+        { tipo: 'obs_scene', parametros: { scene: 'Santa Ceia' } },
+      ],
+    },
+    {
+      id: 'modo-oracao',
+      nome: 'Oração',
+      descricao: 'Momento de oração e intercessão',
+      acoes: [
+        { tipo: 'xr12_preset', parametros: { nome: 'pregacao' } },
+        { tipo: 'obs_scene', parametros: { scene: 'Oração' } },
+      ],
+    },
+    {
+      id: 'intervalo',
+      nome: 'Intervalo',
+      descricao: 'Pausa / intervalo do culto',
+      acoes: [
+        { tipo: 'obs_scene', parametros: { scene: 'Intervalo' } },
+        { tipo: 'xr12_preset', parametros: { nome: 'silencio' } },
       ],
     },
     {

@@ -7,11 +7,30 @@ import StatusBadge from '@/components/StatusBadge';
 import { executarAutomacao } from '@/lib/automation';
 import { health } from '@/lib/api';
 
-const automacoes = [
-  { id: 'iniciar-culto',  label: 'Iniciar Culto',   icon: '▶️',  variant: 'success'  as const },
-  { id: 'modo-louvor',    label: 'Modo Louvor',      icon: '🎵',  variant: 'primary'  as const },
-  { id: 'modo-pregacao',  label: 'Modo Pregação',    icon: '📖',  variant: 'warning'  as const },
-  { id: 'encerrar-culto', label: 'Encerrar Culto',   icon: '⏹️',  variant: 'danger'   as const },
+const secoes = [
+  {
+    titulo: 'Controle Geral',
+    cor: 'border-slate-700',
+    itens: [
+      { id: 'iniciar-culto',  label: 'Iniciar Culto',   icon: '▶️',  variant: 'success' as const },
+      { id: 'encerrar-culto', label: 'Encerrar Culto',  icon: '⏹️',  variant: 'danger'  as const },
+    ],
+  },
+  {
+    titulo: 'Momentos do Culto',
+    cor: 'border-slate-700',
+    itens: [
+      { id: 'pre-culto',      label: 'Pré-Culto',       icon: '🕐',  variant: 'ghost'   as const },
+      { id: 'abertura',       label: 'Abertura',         icon: '🙏',  variant: 'primary' as const },
+      { id: 'modo-louvor',    label: 'Louvor',           icon: '🎵',  variant: 'primary' as const },
+      { id: 'modo-pregacao',  label: 'Pregação',         icon: '📖',  variant: 'warning' as const },
+      { id: 'modo-oferta',    label: 'Oferta',           icon: '🙌',  variant: 'warning' as const },
+      { id: 'modo-oracao',    label: 'Oração',           icon: '✝️',  variant: 'primary' as const },
+      { id: 'modo-santa-ceia',label: 'Santa Ceia',       icon: '🍷',  variant: 'primary' as const },
+      { id: 'modo-avisos',    label: 'Avisos',           icon: '📢',  variant: 'ghost'   as const },
+      { id: 'intervalo',      label: 'Intervalo',        icon: '☕',  variant: 'ghost'   as const },
+    ],
+  },
 ];
 
 export default function DashboardPage() {
@@ -34,11 +53,10 @@ export default function DashboardPage() {
     try {
       const resultados = await executarAutomacao(id, 'operador');
       const erros = resultados.filter(r => !r.success);
-      if (erros.length === 0) {
-        showToast('Automação executada com sucesso!', true);
-      } else {
-        showToast(`${erros.length} ação(ões) falharam. Veja os logs.`, false);
-      }
+      showToast(
+        erros.length === 0 ? 'Executado com sucesso!' : `${erros.length} ação(ões) falharam.`,
+        erros.length === 0
+      );
     } catch (e: unknown) {
       showToast(e instanceof Error ? e.message : 'Erro desconhecido', false);
     } finally {
@@ -58,46 +76,40 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between px-4 py-3 max-w-lg mx-auto">
           <div>
             <h1 className="text-lg font-bold text-white">Ekklesia Control</h1>
-            <div className="flex items-center gap-2 mt-0.5">
-              <StatusBadge status={backendStatus} label={backendStatus === 'online' ? 'Sistema online' : 'Backend offline'} />
-            </div>
+            <StatusBadge
+              status={backendStatus}
+              label={backendStatus === 'online' ? 'Sistema online' : 'Backend offline'}
+            />
+          </div>
+          <div className="flex gap-3">
+            <button onClick={() => router.push('/logs')} className="text-slate-400 hover:text-white text-xl p-1" title="Logs">📋</button>
+            <button onClick={() => router.push('/dispositivos')} className="text-slate-400 hover:text-white text-xl p-1" title="Dispositivos">⚙️</button>
           </div>
         </div>
       </header>
 
-      <main className="px-4 py-6 max-w-lg mx-auto space-y-4">
-        <p className="text-slate-400 text-sm">Selecione uma automação para executar:</p>
-
-        {automacoes.map(a => (
-          <BigButton
-            key={a.id}
-            label={a.label}
-            icon={a.icon}
-            variant={a.variant}
-            loading={loading === a.id}
-            disabled={!!loading && loading !== a.id}
-            onClick={() => run(a.id)}
-          />
+      <main className="px-4 py-4 max-w-lg mx-auto space-y-6">
+        {secoes.map(secao => (
+          <section key={secao.titulo}>
+            <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3">{secao.titulo}</h2>
+            <div className="space-y-3">
+              {secao.itens.map(a => (
+                <BigButton
+                  key={a.id}
+                  label={a.label}
+                  icon={a.icon}
+                  variant={a.variant}
+                  loading={loading === a.id}
+                  disabled={!!loading && loading !== a.id}
+                  onClick={() => run(a.id)}
+                />
+              ))}
+            </div>
+          </section>
         ))}
-
-        <div className="pt-2 grid grid-cols-2 gap-3">
-          <button
-            onClick={() => router.push('/logs')}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl py-4 text-sm font-medium transition-colors flex flex-col items-center gap-1"
-          >
-            <span className="text-2xl">📋</span>
-            <span>Logs</span>
-          </button>
-          <button
-            onClick={() => router.push('/dispositivos')}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl py-4 text-sm font-medium transition-colors flex flex-col items-center gap-1"
-          >
-            <span className="text-2xl">⚙️</span>
-            <span>Dispositivos</span>
-          </button>
-        </div>
       </main>
 
+      {/* Toast */}
       {toast && (
         <div className={`fixed bottom-20 left-4 right-4 max-w-lg mx-auto rounded-2xl px-4 py-3 text-sm font-medium text-white shadow-lg z-50 ${
           toast.ok ? 'bg-emerald-600' : 'bg-red-600'
