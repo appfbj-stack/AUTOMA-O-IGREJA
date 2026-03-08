@@ -42,5 +42,26 @@ export const sonoff = {
     request('/sonoff/batch', { method: 'POST', body: JSON.stringify({ devices }) }),
 };
 
+// ---- Logs (PostgreSQL via backend) ----
+export const apiLogs = {
+  salvar: (log: { id?: string; data: string; acao: string; usuario: string; resultado: string; detalhes?: string }) =>
+    request('/logs', { method: 'POST', body: JSON.stringify(log) }).catch(() => null),
+  buscar: (limite = 100, resultado?: string) => {
+    const params = new URLSearchParams({ limit: String(limite) });
+    if (resultado) params.set('resultado', resultado);
+    return request(`/logs?${params}`).catch(() => []);
+  },
+  limpar: () => request('/logs', { method: 'DELETE' }).catch(() => null),
+};
+
+// ---- Dispositivos (PostgreSQL via backend) ----
+export const apiDispositivos = {
+  listar: () => request('/dispositivos').catch(() => []),
+  salvar: (d: { id: string; nome: string; tipo: string; ip: string; porta: number; status: string }) =>
+    request('/dispositivos', { method: 'POST', body: JSON.stringify(d) }).catch(() => null),
+  deletar: (id: string) =>
+    request(`/dispositivos/${id}`, { method: 'DELETE' }).catch(() => null),
+};
+
 // ---- Health ----
 export const health = () => request('/health').catch(() => ({ status: 'offline' }));

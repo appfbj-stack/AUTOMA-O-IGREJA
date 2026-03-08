@@ -1,4 +1,4 @@
-import { obs, xr12, sonoff } from './api';
+import { obs, xr12, sonoff, apiLogs } from './api';
 import { getAutomacao, getDispositivos, addLog, AcaoAutomacao } from './db';
 
 type AcaoResult = { tipo: string; success: boolean; error?: string };
@@ -70,13 +70,19 @@ export async function executarAutomacao(
     const resultado = await executarAcao(acao, dispositivos);
     resultados.push(resultado);
 
-    await addLog({
+    const logEntry = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       data: new Date().toISOString(),
       acao: `${automacao.nome} → ${acao.tipo}`,
       usuario,
-      resultado: resultado.success ? 'sucesso' : 'erro',
+      resultado: resultado.success ? 'sucesso' as const : 'erro' as const,
       detalhes: resultado.error,
-    });
+    };
+    // Salva local (IndexedDB) e remoto (PostgreSQL) em paralelo
+    await Promise.all([
+      addLog(logEntry),
+      apiLogs.salvar(logEntry),
+    ]);
 
     // Para em caso de erro crítico OBS
     if (!resultado.success && tipo_critico(acao.tipo)) break;
