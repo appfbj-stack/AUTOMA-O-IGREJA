@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import NavBar from '@/components/NavBar';
 import BigButton from '@/components/BigButton';
@@ -17,15 +16,10 @@ interface OBSStatus {
 }
 
 export default function LivePage() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [obsStatus, setObsStatus] = useState<OBSStatus | null>(null);
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (status === 'unauthenticated') router.push('/login');
-  }, [status, router]);
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -46,14 +40,13 @@ export default function LivePage() {
   async function action(name: string, fn: () => Promise<unknown>) {
     if (loadingAction) return;
     setLoadingAction(name);
-    const usuario = session?.user?.name ?? 'Desconhecido';
     try {
       await fn();
-      await addLog({ data: new Date().toISOString(), acao: `OBS: ${name}`, usuario, resultado: 'sucesso' });
+      await addLog({ data: new Date().toISOString(), acao: `OBS: ${name}`, usuario: 'operador', resultado: 'sucesso' });
       await fetchStatus();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      await addLog({ data: new Date().toISOString(), acao: `OBS: ${name}`, usuario, resultado: 'erro', detalhes: msg });
+      await addLog({ data: new Date().toISOString(), acao: `OBS: ${name}`, usuario: 'operador', resultado: 'erro', detalhes: msg });
       setError(msg);
     } finally {
       setLoadingAction(null);
@@ -77,12 +70,9 @@ export default function LivePage() {
 
       <main className="px-4 py-6 max-w-lg mx-auto space-y-4">
         {error && (
-          <div className="bg-red-900/40 border border-red-700 text-red-300 rounded-xl px-4 py-3 text-sm">
-            {error}
-          </div>
+          <div className="bg-red-900/40 border border-red-700 text-red-300 rounded-xl px-4 py-3 text-sm">{error}</div>
         )}
 
-        {/* Stream */}
         <section className="bg-slate-800 rounded-2xl p-4 space-y-3">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wide">Transmissão ao vivo</h2>
           {obsStatus?.streaming ? (
@@ -98,7 +88,6 @@ export default function LivePage() {
           )}
         </section>
 
-        {/* Gravação */}
         <section className="bg-slate-800 rounded-2xl p-4 space-y-3">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wide">Gravação</h2>
           {obsStatus?.recording ? (
@@ -114,7 +103,6 @@ export default function LivePage() {
           )}
         </section>
 
-        {/* Cenas */}
         {obsStatus?.scenes && obsStatus.scenes.length > 0 && (
           <section className="bg-slate-800 rounded-2xl p-4 space-y-3">
             <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wide">

@@ -1,5 +1,2 @@
-export { default } from 'next-auth/middleware';
-
-export const config = {
-  matcher: ['/dashboard', '/live', '/som', '/iluminacao', '/energia', '/automacoes', '/dispositivos', '/logs'],
-};
+// Autenticação desativada — acesso direto ao dashboard
+export {};

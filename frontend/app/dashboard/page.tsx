@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import NavBar from '@/components/NavBar';
 import BigButton from '@/components/BigButton';
@@ -16,15 +15,10 @@ const automacoes = [
 ];
 
 export default function DashboardPage() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
   const [backendStatus, setBackendStatus] = useState<'online' | 'offline' | 'desconhecido'>('desconhecido');
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
-
-  useEffect(() => {
-    if (status === 'unauthenticated') router.push('/login');
-  }, [status, router]);
 
   useEffect(() => {
     health().then(r => setBackendStatus(r.status === 'ok' ? 'online' : 'offline'));
@@ -38,8 +32,7 @@ export default function DashboardPage() {
     if (loading) return;
     setLoading(id);
     try {
-      const nome = session?.user?.name ?? 'Desconhecido';
-      const resultados = await executarAutomacao(id, nome);
+      const resultados = await executarAutomacao(id, 'operador');
       const erros = resultados.filter(r => !r.success);
       if (erros.length === 0) {
         showToast('Automação executada com sucesso!', true);
@@ -58,14 +51,6 @@ export default function DashboardPage() {
     setTimeout(() => setToast(null), 3500);
   }
 
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900">
-        <div className="text-slate-400">Carregando...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-slate-900 pb-20">
       {/* Header */}
@@ -76,16 +61,6 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2 mt-0.5">
               <StatusBadge status={backendStatus} label={backendStatus === 'online' ? 'Sistema online' : 'Backend offline'} />
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-400 hidden sm:block">{session?.user?.name}</span>
-            <button
-              onClick={() => signOut({ callbackUrl: '/login' })}
-              className="text-slate-400 hover:text-white text-xl p-1"
-              title="Sair"
-            >
-              🚪
-            </button>
           </div>
         </div>
       </header>
@@ -123,9 +98,8 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      {/* Toast */}
       {toast && (
-        <div className={`fixed bottom-20 left-4 right-4 max-w-lg mx-auto rounded-2xl px-4 py-3 text-sm font-medium text-white shadow-lg transition-all z-50 ${
+        <div className={`fixed bottom-20 left-4 right-4 max-w-lg mx-auto rounded-2xl px-4 py-3 text-sm font-medium text-white shadow-lg z-50 ${
           toast.ok ? 'bg-emerald-600' : 'bg-red-600'
         }`}>
           {toast.ok ? '✅' : '❌'} {toast.msg}
