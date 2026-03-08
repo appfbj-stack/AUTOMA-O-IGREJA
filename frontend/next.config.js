@@ -10,10 +10,11 @@ const withPWA = require('@ducanh2912/next-pwa').default({
 const nextConfig = {
   reactStrictMode: true,
   async rewrites() {
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
     return [
       {
         source: '/api/backend/:path*',
-        destination: `http://localhost:3001/api/:path*`,
+        destination: `${backendUrl}/api/:path*`,
       },
     ];
   },
